@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import isAuthenticated from "../services/isAuthenticated";
 
 const Login = () => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const usernameRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -19,6 +19,8 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const username = usernameRef.current?.value || "";
+    const password = passwordRef.current?.value || "";
     try {
       const response = await axios.post(
         "http://localhost:5000/api/auth/login",
@@ -33,7 +35,11 @@ const Login = () => {
       // Navegamos a la página principal
       navigate("/");
     } catch (err) {
-      setError("Credenciales inválidas");
+      if (axios.isAxiosError(err) && err.response?.status === 401) {
+        setError("Usuario o contraseña incorrectos.");
+      } else {
+        setError("Error de conexión. Intenta de nuevo.");
+      }
     }
   };
   return (
@@ -50,8 +56,9 @@ const Login = () => {
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
           <img
             alt="SureTech"
-            src="https://suretech.fr/wp-content/uploads/2018/08/LOGO_SURETECH_SANS-FOND-1.png"
+            src="/logo-suretech-test.svg"
             className="mx-auto h-28 w-auto"
+            loading="lazy"
           />
           <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-gray-900">
             Login
@@ -71,15 +78,14 @@ const Login = () => {
                 <input
                   id="username"
                   type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  ref={usernameRef}
                   required
                   className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                 />
               </div>
             </div>
 
-            <div>
+            <div className={error && "mb-2"}>
               <div className="flex items-center justify-between">
                 <label
                   htmlFor="password"
@@ -101,14 +107,14 @@ const Login = () => {
                   id="password"
                   name="password"
                   type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  ref={passwordRef}
                   required
                   autoComplete="current-password"
                   className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                 />
               </div>
             </div>
+            {error && <p className="mb-2 text-base text-red-700">{error}</p>}
 
             <div>
               <button
