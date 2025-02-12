@@ -27,7 +27,7 @@ const RightPanel = ({
         invoiceType={invoiceType}
         setInvoiceType={setInvoiceType}
       />
-      <RightPanelFooter />
+      <RightPanelFooter setCartItems={setCartItems} />
     </div>
   );
 };
@@ -60,7 +60,7 @@ const RightPanelContent = ({
   setInvoiceType: (type: "boleta" | "factura") => void;
 }) => {
   const total = cartItems.reduce(
-    (sum, item) => sum + item.product.price * item.quantity,
+    (sum, item) => sum + item.product.price! * item.quantity,
     0
   );
 
@@ -173,11 +173,11 @@ const CartItemRow = ({
       </td>
       <td className="text-gray-900">{item.product.name}</td>
       <td className="text-right text-gray-900">
-        ${item.product.price.toFixed(2)}
+        ${item.product.price!.toFixed(2)}
       </td>
       <td className="text-right text-gray-900">{item.product.stock}</td>
       <td className="text-right text-gray-900">
-        ${(item.product.price * item.quantity).toFixed(2)}
+        ${(item.product.price! * item.quantity).toFixed(2)}
       </td>
       <td className="text-right">
         <button
@@ -191,22 +191,34 @@ const CartItemRow = ({
   );
 };
 
-const RightPanelFooter = () => (
-  <div className="p-4 border-t border-gray-200 flex justify-between">
-    <button className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors">
-      Cancelar
-    </button>
-    <div className="flex gap-2">
-      <button className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors flex items-center gap-2">
-        <Save className="h-5 w-5" />
-        Guardar
+const RightPanelFooter = ({
+  setCartItems,
+}: {
+  setCartItems: (items: CartItem[]) => void;
+}) => {
+  const handleCancelSale = () => {
+    setCartItems([]);
+  };
+  return (
+    <div className="p-4 border-t border-gray-200 flex justify-between">
+      <button
+        className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
+        onClick={handleCancelSale}
+      >
+        Cancelar
       </button>
-      <button className="px-4 py-2 rounded-lg bg-black text-white hover:bg-gray-800 transition-colors flex items-center gap-2">
-        <CreditCard className="h-5 w-5" />
-        Pagar
-      </button>
+      <div className="flex gap-2">
+        <button className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors flex items-center gap-2">
+          <Save className="h-5 w-5" />
+          Guardar
+        </button>
+        <button className="px-4 py-2 rounded-lg bg-black text-white hover:bg-gray-800 transition-colors flex items-center gap-2">
+          <CreditCard className="h-5 w-5" />
+          Pagar
+        </button>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default RightPanel;

@@ -1,37 +1,29 @@
-import { useState, useEffect } from "react";
 import { Search, Filter, UserCircle, ShoppingCart } from "lucide-react";
-import axios from "axios";
+import { LeftPanelViewTypes, LeftPanelProps } from "../../../typing/typesUtils";
 
-// Tipos
-type Product = {
-  id: number;
-  name: string;
-  category: string;
-  price: number;
-  stock: number;
-  imageUrl?: string;
-};
+import LeftPanelContent from "./LeftPanelContent"; //El contenido central del panel se maneja en un componente hijo externo
 
 // Panel izquierdo
-const LeftPanel = ({
-  showProducts,
-  setShowProducts,
-}: {
-  showProducts: boolean;
-  setShowProducts: (show: boolean) => void;
+const LeftPanel: React.FC<LeftPanelProps> = ({
+  currentView,
+  onViewChange,
+  onAddToCart, //Estas funciones de handle AddToCart o DecreaseFromCart deberían pasarse desde el Padre de LeftPanel, PuntoDeVenta
+  onDecreaseFromCart,
 }) => {
   return (
     <div className="w-2/5 border-r border-gray-200 flex flex-col">
       <LeftPanelHeader />
-      <LeftPanelContent showProducts={showProducts} />
-      <LeftPanelFooter
-        showProducts={showProducts}
-        setShowProducts={setShowProducts}
+      <LeftPanelContent
+        view={currentView}
+        onAdd={onAddToCart}
+        onDecrease={onDecreaseFromCart}
       />
+      <LeftPanelFooter view={currentView} setView={onViewChange} />
     </div>
   );
 };
 
+// El header se encarga de permitir buscar o filtrar los productos o clientes
 const LeftPanelHeader = () => (
   <div className="p-4 border-b border-gray-200">
     <div className="flex gap-2">
@@ -50,108 +42,19 @@ const LeftPanelHeader = () => (
   </div>
 );
 
-const LeftPanelContent = ({ showProducts }: { showProducts: boolean }) => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const token = sessionStorage.getItem("token");
-        const response = await axios.get("http://localhost:5000/api/products", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setProducts(response.data);
-        setError(null);
-      } catch (err) {
-        setError("Error al cargar los productos");
-        console.error("Error fetching products:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (showProducts) {
-      fetchProducts();
-    }
-  }, [showProducts]);
-
-  if (!showProducts) {
-    return (
-      <div className="flex-1 overflow-auto p-4 flex items-center justify-center text-gray-500">
-        Lista de clientes (próximamente)
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="flex-1 overflow-auto p-4 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex-1 overflow-auto p-4 flex items-center justify-center text-red-600">
-        {error}
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex-1 overflow-auto p-4">
-      <table className="w-full">
-        <thead>
-          <tr className="border-b border-gray-200">
-            <th className="text-left pb-2 font-medium text-gray-600">Nombre</th>
-            <th className="text-right pb-2 font-medium text-gray-600">
-              Precio
-            </th>
-            <th className="text-right pb-2 font-medium text-gray-600">Stock</th>
-          </tr>
-        </thead>
-        <tbody>
-          {products.map((product) => (
-            <tr
-              key={product.id}
-              className="border-b border-gray-100 hover:bg-gray-50"
-            >
-              <td className="py-3 text-gray-900">{product.name}</td>
-              <td className="py-3 text-right text-gray-900">
-                ${product.price.toFixed(2)}
-              </td>
-              <td className="py-3 text-right text-gray-900">
-                <span
-                  className={`${product.stock === 0 ? "text-red-600" : ""}`}
-                >
-                  {product.stock}
-                </span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-};
-
+// El footer se encarga de intercambiar el view entre lista de productos o clientes
 const LeftPanelFooter = ({
-  showProducts,
-  setShowProducts,
+  view,
+  setView,
 }: {
-  showProducts: boolean;
-  setShowProducts: (show: boolean) => void;
+  view: LeftPanelViewTypes;
+  setView: LeftPanelProps["onViewChange"];
 }) => (
   <div className="p-4 border-t border-gray-200 flex justify-between">
     <button
-      onClick={() => setShowProducts(true)}
+      onClick={() => setView("Products")}
       className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
-        showProducts
+        view === "Products"
           ? "bg-black text-white hover:bg-gray-800"
           : "border border-gray-300 hover:bg-gray-100"
       }`}
@@ -160,9 +63,9 @@ const LeftPanelFooter = ({
       Productos
     </button>
     <button
-      onClick={() => setShowProducts(false)}
+      onClick={() => setView("Customers")}
       className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
-        !showProducts
+        view === "Customers"
           ? "bg-black text-white hover:bg-gray-800"
           : "border border-gray-300 hover:bg-gray-100"
       }`}
