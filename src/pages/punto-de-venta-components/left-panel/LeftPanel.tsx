@@ -11,7 +11,7 @@ const LeftPanel: React.FC<LeftPanelProps> = ({
   onDecreaseFromCart,
 }) => {
   return (
-    <div className="w-2/5 border-r border-gray-200 flex flex-col">
+    <div className="h-full border-r border-gray-200 flex flex-col">
       <LeftPanelHeader />
       <LeftPanelContent
         view={currentView}

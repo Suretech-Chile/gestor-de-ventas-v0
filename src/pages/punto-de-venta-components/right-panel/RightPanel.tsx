@@ -1,48 +1,59 @@
 import { CartItem, Customer } from "../../../typing/typesUtils";
 import { X, Save, CreditCard } from "lucide-react";
+import { NotificationType } from "../../../typing/typesUtils";
 
 // Panel derecho
 const RightPanel = ({
   cartItems,
   setCartItems,
   selectedCustomer,
-  invoiceType,
-  setInvoiceType,
+  saleType,
+  setSaleType,
+  setShowPagarScreen,
+  showNotifications,
 }: {
   cartItems: CartItem[];
   setCartItems: (items: CartItem[]) => void;
   selectedCustomer: Customer | null;
-  invoiceType: "boleta" | "factura";
-  setInvoiceType: (type: "boleta" | "factura") => void;
+  saleType: "boleta" | "factura";
+  setSaleType: (type: "boleta" | "factura") => void;
+  setShowPagarScreen: (state: boolean) => void;
+  showNotifications: (message: string, type: "success" | "error") => void;
 }) => {
   return (
-    <div className="w-3/5 flex flex-col">
+    <div className="h-full flex flex-col">
       <RightPanelHeader
         selectedCustomer={selectedCustomer}
-        invoiceType={invoiceType}
+        saleType={saleType}
       />
       <RightPanelContent
         cartItems={cartItems}
         setCartItems={setCartItems}
-        invoiceType={invoiceType}
-        setInvoiceType={setInvoiceType}
+        saleType={saleType}
+        setSaleType={setSaleType}
       />
-      <RightPanelFooter setCartItems={setCartItems} />
+      <RightPanelFooter
+        cart={cartItems}
+        setCartItems={setCartItems}
+        saleType={saleType}
+        setShowPagarScreen={setShowPagarScreen}
+        showNotifications={showNotifications}
+      />
     </div>
   );
 };
 
 const RightPanelHeader = ({
   selectedCustomer,
-  invoiceType,
+  saleType,
 }: {
   selectedCustomer: Customer | null;
-  invoiceType: string;
+  saleType: "boleta" | "factura";
 }) => (
   <div className="p-4 border-b border-gray-200">
     <h2 className="text-xl font-semibold text-gray-900">Detalle de Compra</h2>
     <p className="text-gray-600">
-      {invoiceType.toUpperCase()} -
+      {saleType.toUpperCase()} -
       {selectedCustomer ? selectedCustomer.name : "Cliente no especificado"}
     </p>
   </div>
@@ -51,13 +62,13 @@ const RightPanelHeader = ({
 const RightPanelContent = ({
   cartItems,
   setCartItems,
-  invoiceType,
-  setInvoiceType,
+  saleType,
+  setSaleType,
 }: {
   cartItems: CartItem[];
   setCartItems: (items: CartItem[]) => void;
-  invoiceType: "boleta" | "factura";
-  setInvoiceType: (type: "boleta" | "factura") => void;
+  saleType: "boleta" | "factura";
+  setSaleType: (type: "boleta" | "factura") => void;
 }) => {
   const total = cartItems.reduce(
     (sum, item) => sum + item.product.price! * item.quantity,
@@ -103,9 +114,9 @@ const RightPanelContent = ({
       <div className="mt-4 flex justify-between items-center">
         <div className="relative">
           <select
-            value={invoiceType}
+            value={saleType}
             onChange={(e) =>
-              setInvoiceType(e.target.value as "boleta" | "factura")
+              setSaleType(e.target.value as "boleta" | "factura")
             }
             className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
           >
@@ -137,6 +148,7 @@ const RightPanelContent = ({
 };
 
 const CartItemRow = ({
+  //Por decidir si deseamos que la X muestre notificación al eliminar productos hay que pasarle showNotification()
   item,
   cartItems,
   setCartItems,
@@ -154,10 +166,11 @@ const CartItemRow = ({
     setCartItems(newCartItems);
   };
 
-  const handleRemove = () => {
+  const handleRemoveItem = () => {
     setCartItems(
       cartItems.filter((cartItem) => cartItem.product.id !== item.product.id)
     );
+    //Si desearamos notificar de el producto removido, podríamos pedir showNotification como prop y llamarla aquí
   };
 
   return (
@@ -181,8 +194,8 @@ const CartItemRow = ({
       </td>
       <td className="text-right">
         <button
-          onClick={handleRemove}
-          className="p-1 rounded-lg hover:bg-red-100 hover:text-red-600 transition-colors"
+          onClick={handleRemoveItem}
+          className="p-1 rounded-lg hover:bg-red-500 hover:text-red-950 transition-colors"
         >
           <X className="h-5 w-5" />
         </button>
@@ -192,12 +205,42 @@ const CartItemRow = ({
 };
 
 const RightPanelFooter = ({
+  saleType,
+  cart,
   setCartItems,
+  setShowPagarScreen,
+  showNotifications,
 }: {
+  saleType: "boleta" | "factura";
+  cart: CartItem[];
   setCartItems: (items: CartItem[]) => void;
+  setShowPagarScreen: (state: boolean) => void;
+  showNotifications: (message: string, type: "success" | "error") => void;
 }) => {
   const handleCancelSale = () => {
+    if (cart.length === 0) {
+      return; //No hay venta que cancelar, entonces retornamos inmediatamente
+    }
+    // En caso que sí haya carrito deberíamos abrir un Modal para preguntarle al usuario si desea eliminar el carrito existente
+    // Estas lineas de abajo debería ejecutarlas el modal
     setCartItems([]);
+    if (setShowPagarScreen) {
+      setShowPagarScreen(false);
+    }
+    showNotifications("Venta Cancelada", "error");
+  };
+  const handleSaveSale = () => {
+    console.log("Falta implementar los borradores de venta.");
+    console.log("Debería guardarse una venta tipo:", saleType);
+    console.log("Con el carrito", cart);
+    // Tenemos el tipo Sale creado para devolver el borrador de venta
+  };
+  const handlePagarButton = () => {
+    if (!cart.length) {
+      console.log("Se intentó comprar con un carrito vacío");
+      return;
+    }
+    setShowPagarScreen(true);
   };
   return (
     <div className="p-4 border-t border-gray-200 flex justify-between">
@@ -208,11 +251,17 @@ const RightPanelFooter = ({
         Cancelar
       </button>
       <div className="flex gap-2">
-        <button className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors flex items-center gap-2">
+        <button
+          className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors flex items-center gap-2"
+          onClick={handleSaveSale}
+        >
           <Save className="h-5 w-5" />
           Guardar
         </button>
-        <button className="px-4 py-2 rounded-lg bg-black text-white hover:bg-gray-800 transition-colors flex items-center gap-2">
+        <button
+          className="px-4 py-2 rounded-lg bg-black text-white hover:bg-gray-800 transition-colors flex items-center gap-2"
+          onClick={handlePagarButton}
+        >
           <CreditCard className="h-5 w-5" />
           Pagar
         </button>

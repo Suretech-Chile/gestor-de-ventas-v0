@@ -1,13 +1,11 @@
 import { useState, useRef } from "react";
-import {
-  Notification,
-  TOAST_LIMIT,
-} from "../components/general-use/NotificationToast";
+import { TOAST_LIMIT } from "../components/general-use/NotificationToast";
+import { NotificationType } from "../typing/typesUtils";
 
 // Propósito del hook:
 // Manejo de notifiaciones, usadas agregar un producto de la lista al carrito, o remover su cantidad
 export const useNotifications = () => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<NotificationType[]>([]);
   // Añadimos un contador que persiste entre renders para arreglar el bug de notificaciones con mismo id
   const notificationCounter = useRef(0);
 

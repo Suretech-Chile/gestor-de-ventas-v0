@@ -1,16 +1,5 @@
 import { AlertCircle, CheckCircle2 } from "lucide-react";
-
-export type Notification = {
-  message: string;
-  type: "success" | "error";
-  id: number;
-};
-
-interface ToastProps {
-  message: string;
-  type: "success" | "error";
-  orderForStack: number;
-}
+import { NotificationType, ToastProps } from "../../typing/typesUtils";
 
 export const TOAST_LIMIT = 13; // Número máximo de notificaciones visibles
 // En este caso, 13 toasts llegan hasta justo arriba del precio
@@ -43,7 +32,7 @@ const NotificationToast = ({ message, type, orderForStack }: ToastProps) => (
 const NotificationQueue = ({
   notifications,
 }: {
-  notifications: Notification[];
+  notifications: NotificationType[];
 }) => {
   // Solo mostramos hasta TOAST_LIMIT notificaciones
   const visibleNotifications = notifications.slice(-TOAST_LIMIT);

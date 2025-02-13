@@ -3,6 +3,7 @@ import { CartItem, Customer, Product } from "../typing/typesUtils"; // Tipos
 import LeftPanel from "./punto-de-venta-components/left-panel/LeftPanel";
 import { LeftPanelViewTypes } from "../typing/typesUtils";
 import RightPanel from "./punto-de-venta-components/right-panel/RightPanel";
+import PagarScreen from "./punto-de-venta-components/PagarScreen";
 import { useNotifications } from "../hooks/useNotifications";
 import NotificationQueue from "../components/general-use/NotificationToast"; // El componente de notifiaciones y su tipo
 
@@ -16,7 +17,9 @@ const PuntoDeVenta = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [saleType, setSaleType] = useState<"boleta" | "factura">("boleta");
   const { notifications, showNotification } = useNotifications();
+  const [showPagarScreen, setShowPagarScreen] = useState<boolean>(false);
 
+  // Handlers AddToCart y DecreaseFromCart que se usan en LeftPanel
   const handleAddToCart = (product: Product) => {
     // Manejo de producto sin info de precio
     if (product.price === null) {
@@ -94,22 +97,60 @@ const PuntoDeVenta = () => {
     });
   };
 
+  // Funciones usadas por right panel al confirmar la compra
+  const buildBoleta = (cart: CartItem[]) => {
+    console.log("Construiremos la boleta con:", cart);
+  };
+
+  const buildFactura = (cart: CartItem[]) => {
+    console.log("Construiremos la factura con:", cart);
+  };
+
   return (
-    <div className="flex h-screen bg-gray-50">
-      <LeftPanel
-        currentView={leftPanelState}
-        onViewChange={setLeftPanelState}
-        onAddToCart={handleAddToCart}
-        onDecreaseFromCart={handleDecreaseFromCart}
-      />
-      <RightPanel
-        cartItems={cartItems}
-        setCartItems={setCartItems}
-        selectedCustomer={selectedCustomer}
-        invoiceType={saleType}
-        setInvoiceType={setSaleType}
-      />
-      {/* Mostrar notificaciones */}
+    <div className="flex w-full h-screen relative overflow-hidden bg-gray-50">
+      {/* Container absolute que envuelve LeftPanel y RightPanel permite la animación */}
+      <div
+        className="flex w-full h-full absolute transition-all duration-400 ease-in-out"
+        style={{
+          transform: showPagarScreen ? "translateX(-40%)" : "translateX(0)",
+        }}
+      >
+        <div
+          className={`w-2/5 transition-opacity duration-400 ${
+            showPagarScreen ? "opacity-0" : "opacity-100"
+          }`}
+        >
+          <LeftPanel
+            currentView={leftPanelState}
+            onViewChange={setLeftPanelState}
+            onAddToCart={handleAddToCart}
+            onDecreaseFromCart={handleDecreaseFromCart}
+          />
+        </div>
+        <div className="w-3/5">
+          <RightPanel
+            cartItems={cartItems}
+            setCartItems={setCartItems}
+            selectedCustomer={selectedCustomer}
+            saleType={saleType}
+            setSaleType={setSaleType}
+            setShowPagarScreen={setShowPagarScreen}
+            showNotifications={showNotification}
+          />
+        </div>
+      </div>
+
+      {/* Pagar Screen - aparece desde la derecha */}
+      <div
+        className={`transition-all duration-400 ease-in-out absolute right-0 ${
+          showPagarScreen
+            ? "w-2/5 opacity-100 translate-x-0"
+            : "w-2/5 opacity-0 translate-x-full"
+        }`}
+      >
+        <PagarScreen saleType={saleType} />
+      </div>
+      {/* Sistema de notificaciones */}
       <NotificationQueue notifications={notifications} />
     </div>
   );

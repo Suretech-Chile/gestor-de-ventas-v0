@@ -106,16 +106,16 @@ const LeftPanelContent = ({
               </td>
               <td className="py-3 flex justify-end gap-0.5">
                 <button
-                  className="hover:bg-gray-100 hover:cursor-pointer p-1 rounded-full"
+                  className="hover:bg-emerald-300 hover:cursor-pointer p-1 rounded-full"
                   onClick={() => onAdd(product)}
                 >
                   <CirclePlus className="text-gray-600 hover:text-gray-900" />
                 </button>
                 <button
-                  className="hover:bg-gray-100 hover:cursor-pointer p-1 rounded-full"
+                  className="hover:bg-red-500 hover:cursor-pointer p-1 rounded-full"
                   onClick={() => onDecrease(product)}
                 >
-                  <OctagonMinus className="text-red-500 hover:text-red-900" />
+                  <OctagonMinus className="text-red-500 hover:text-red-950" />
                 </button>
               </td>
             </tr>
