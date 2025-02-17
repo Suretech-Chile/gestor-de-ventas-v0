@@ -6,6 +6,7 @@ import RightPanel from "./punto-de-venta-components/right-panel/RightPanel";
 import PagarScreen from "./punto-de-venta-components/PagarScreen";
 import { useNotifications } from "../hooks/useNotifications";
 import NotificationQueue from "../components/general-use/NotificationToast"; // El componente de notifiaciones y su tipo
+import CartClearModal from "../components/general-use/CartClearModal";
 
 // Componente principal
 const PuntoDeVenta = () => {
@@ -18,6 +19,7 @@ const PuntoDeVenta = () => {
   const [saleType, setSaleType] = useState<"boleta" | "factura">("boleta");
   const { notifications, showNotification } = useNotifications();
   const [showPagarScreen, setShowPagarScreen] = useState<boolean>(false);
+  const [isCartClearModalOpen, setIsCartClearModalOpen] = useState(false);
 
   // Handlers AddToCart y DecreaseFromCart que se usan en LeftPanel
   const handleAddToCart = (product: Product) => {
@@ -97,15 +99,6 @@ const PuntoDeVenta = () => {
     });
   };
 
-  // Funciones usadas por right panel al confirmar la compra
-  const buildBoleta = (cart: CartItem[]) => {
-    console.log("Construiremos la boleta con:", cart);
-  };
-
-  const buildFactura = (cart: CartItem[]) => {
-    console.log("Construiremos la factura con:", cart);
-  };
-
   return (
     <div className="flex w-full h-screen relative overflow-hidden bg-gray-50">
       {/* Container absolute que envuelve LeftPanel y RightPanel permite la animación */}
@@ -134,8 +127,10 @@ const PuntoDeVenta = () => {
             selectedCustomer={selectedCustomer}
             saleType={saleType}
             setSaleType={setSaleType}
+            showPagarScreen={showPagarScreen}
             setShowPagarScreen={setShowPagarScreen}
             showNotifications={showNotification}
+            openCartClearModal={() => setIsCartClearModalOpen(true)}
           />
         </div>
       </div>
@@ -148,10 +143,36 @@ const PuntoDeVenta = () => {
             : "w-2/5 opacity-0 translate-x-full"
         }`}
       >
-        <PagarScreen saleType={saleType} />
+        <PagarScreen
+          cartItems={cartItems}
+          selectedCustomer={selectedCustomer}
+          saleType={saleType}
+          setSaleType={setSaleType}
+          onSubmit={(data) => console.log("COMPRA HECHA", data)}
+        />
       </div>
+
       {/* Sistema de notificaciones */}
       <NotificationQueue notifications={notifications} />
+
+      {/* Modal para preguntar si se desea eliminar el carrito al cancelar, es llamado desde RightPanel->RightPanelFooter->Button: Cancelar */}
+      <CartClearModal
+        isOpen={isCartClearModalOpen}
+        onClose={() => setIsCartClearModalOpen(false)}
+        onClearCart={() => {
+          // Lógica para limpiar el carrito
+          setCartItems([]);
+          // Limpiar el cliente
+          if (selectedCustomer) {
+            setSelectedCustomer(null);
+          }
+          setShowPagarScreen(false);
+        }}
+        onKeepCart={() => {
+          // Mantener los items del carrito y el cliente
+          setShowPagarScreen(false);
+        }}
+      />
     </div>
   );
 };

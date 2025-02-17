@@ -1,6 +1,5 @@
 import { CartItem, Customer } from "../../../typing/typesUtils";
-import { X, Save, CreditCard } from "lucide-react";
-import { NotificationType } from "../../../typing/typesUtils";
+import { X, Save, CreditCard, Trash2 } from "lucide-react";
 
 // Panel derecho
 const RightPanel = ({
@@ -9,16 +8,20 @@ const RightPanel = ({
   selectedCustomer,
   saleType,
   setSaleType,
+  showPagarScreen,
   setShowPagarScreen,
   showNotifications,
+  openCartClearModal,
 }: {
   cartItems: CartItem[];
   setCartItems: (items: CartItem[]) => void;
   selectedCustomer: Customer | null;
   saleType: "boleta" | "factura";
   setSaleType: (type: "boleta" | "factura") => void;
+  showPagarScreen: boolean;
   setShowPagarScreen: (state: boolean) => void;
   showNotifications: (message: string, type: "success" | "error") => void;
+  openCartClearModal: () => void;
 }) => {
   return (
     <div className="h-full flex flex-col">
@@ -36,8 +39,10 @@ const RightPanel = ({
         cart={cartItems}
         setCartItems={setCartItems}
         saleType={saleType}
+        showPagarScreen={showPagarScreen}
         setShowPagarScreen={setShowPagarScreen}
         showNotifications={showNotifications}
+        openCartClearModal={openCartClearModal}
       />
     </div>
   );
@@ -90,9 +95,9 @@ const RightPanelContent = ({
               <th className="text-right pb-2 font-medium text-gray-600">
                 Precio Unit.
               </th>
-              <th className="text-right pb-2 font-medium text-gray-600">
-                Stock
-              </th>
+              {/* <th className="text-right pb-2 font-medium text-gray-600">
+                Stock, 
+              </th> */}
               <th className="text-right pb-2 font-medium text-gray-600">
                 Subtotal
               </th>
@@ -188,7 +193,7 @@ const CartItemRow = ({
       <td className="text-right text-gray-900">
         ${item.product.price!.toFixed(2)}
       </td>
-      <td className="text-right text-gray-900">{item.product.stock}</td>
+      {/* <td className="text-right text-gray-900">{item.product.stock}</td> DECIDIMOS NO MOSTRAR STOCK ACÁ */}
       <td className="text-right text-gray-900">
         ${(item.product.price! * item.quantity).toFixed(2)}
       </td>
@@ -208,26 +213,31 @@ const RightPanelFooter = ({
   saleType,
   cart,
   setCartItems,
+  showPagarScreen,
   setShowPagarScreen,
   showNotifications,
+  openCartClearModal,
 }: {
   saleType: "boleta" | "factura";
   cart: CartItem[];
   setCartItems: (items: CartItem[]) => void;
+  showPagarScreen: boolean;
   setShowPagarScreen: (state: boolean) => void;
   showNotifications: (message: string, type: "success" | "error") => void;
+  openCartClearModal: () => void;
 }) => {
   const handleCancelSale = () => {
-    if (cart.length === 0) {
-      return; //No hay venta que cancelar, entonces retornamos inmediatamente
+    // Si ya estábamos en la pantalla de pago, abrimos el modal para confirmar la cancelación de la venta
+    if (showPagarScreen) {
+      openCartClearModal();
+    } else {
+      // Limpiamos carrito
+      setCartItems([]);
+      // Limpiar el cliente una vez implementemos la lista de clientes. PARA APLICARLO DEBERÍAMOS AGREGAR DE PROP SELECTEDCUSTOMER
+      // if (selectedCustomer) {
+      //   setSelectedCustomer(null);
+      // }
     }
-    // En caso que sí haya carrito deberíamos abrir un Modal para preguntarle al usuario si desea eliminar el carrito existente
-    // Estas lineas de abajo debería ejecutarlas el modal
-    setCartItems([]);
-    if (setShowPagarScreen) {
-      setShowPagarScreen(false);
-    }
-    showNotifications("Venta Cancelada", "error");
   };
   const handleSaveSale = () => {
     console.log("Falta implementar los borradores de venta.");
@@ -245,10 +255,11 @@ const RightPanelFooter = ({
   return (
     <div className="p-4 border-t border-gray-200 flex justify-between">
       <button
-        className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
+        className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors flex items-center gap-2"
         onClick={handleCancelSale}
       >
-        Cancelar
+        <Trash2 className="h-5 w-5" />
+        {showPagarScreen ? "Cancelar venta" : "Quitar todo"}
       </button>
       <div className="flex gap-2">
         <button
@@ -258,13 +269,15 @@ const RightPanelFooter = ({
           <Save className="h-5 w-5" />
           Guardar
         </button>
-        <button
-          className="px-4 py-2 rounded-lg bg-black text-white hover:bg-gray-800 transition-colors flex items-center gap-2"
-          onClick={handlePagarButton}
-        >
-          <CreditCard className="h-5 w-5" />
-          Pagar
-        </button>
+        {!showPagarScreen && (
+          <button
+            className="px-4 py-2 rounded-lg bg-black text-white hover:bg-gray-800 transition-colors flex items-center gap-2"
+            onClick={handlePagarButton}
+          >
+            <CreditCard className="h-5 w-5" />
+            Pagar
+          </button>
+        )}
       </div>
     </div>
   );
