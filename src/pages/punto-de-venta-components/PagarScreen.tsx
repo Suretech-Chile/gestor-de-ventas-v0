@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef } from "react";
 import { CartItem, Customer, Sale } from "../../typing/typesUtils";
 import {
+  Package,
   Truck,
   Store,
   CreditCard,
@@ -23,7 +24,7 @@ const EMISOR = {
 };
 
 // Tipos
-type DeliveryMethod = "retiro" | "despacho";
+type DeliveryMethod = "inmediata" | "retiro" | "despacho";
 type PaymentMethod = 1 | 2 | 3; // 1: Efectivo, 2: Débito, 3: Crédito
 
 interface PagarScreenProps {
@@ -44,7 +45,7 @@ const PagarScreen = ({
   // Estados
   const scrollRef = useRef<HTMLDivElement>(null);
   const [deliveryMethod, setDeliveryMethod] =
-    useState<DeliveryMethod>("retiro");
+    useState<DeliveryMethod>("inmediata");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(1);
   const [address, setAddress] = useState({
     street: "",
@@ -211,7 +212,19 @@ const PagarScreen = ({
           {/* Método de entrega */}
           <div className="space-y-4">
             <h2 className="text-lg font-medium">Método de entrega</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
+              <button
+                onClick={() => setDeliveryMethod("inmediata")}
+                className={`p-4 border rounded-lg flex flex-col items-center gap-2 transition-colors
+                  ${
+                    deliveryMethod === "inmediata"
+                      ? "border-black bg-gray-50"
+                      : "border-gray-200"
+                  }`}
+              >
+                <Package className="w-6 h-6" />
+                <span>Entrega inmediata</span>
+              </button>
               <button
                 onClick={() => setDeliveryMethod("retiro")}
                 className={`p-4 border rounded-lg flex flex-col items-center gap-2 transition-colors
