@@ -1,7 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { CartItem, Customer, Sale } from "../../typing/typesUtils";
 import {
-  Package,
   Truck,
   Store,
   CreditCard,
@@ -24,7 +23,7 @@ const EMISOR = {
 };
 
 // Tipos
-type DeliveryMethod = "inmediata" | "retiro" | "despacho";
+type DeliveryMethod = "retiro" | "despacho";
 type PaymentMethod = 1 | 2 | 3; // 1: Efectivo, 2: Débito, 3: Crédito
 
 interface PagarScreenProps {
@@ -43,8 +42,9 @@ const PagarScreen = ({
   onSubmit,
 }: PagarScreenProps) => {
   // Estados
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [deliveryMethod, setDeliveryMethod] =
-    useState<DeliveryMethod>("inmediata");
+    useState<DeliveryMethod>("retiro");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(1);
   const [address, setAddress] = useState({
     street: "",
@@ -116,10 +116,91 @@ const PagarScreen = ({
     return true;
   }, [selectedCustomer, deliveryMethod, address, saleType, invoiceData]);
 
+  const handleConfirmSale = () => {
+    if (!scrollRef.current) return;
+
+    const container = scrollRef.current;
+    const isScrolledToBottom = 
+      Math.abs(
+        container.scrollHeight - container.scrollTop - container.clientHeight
+      ) < 1;
+
+    if (!isScrolledToBottom) {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: 'smooth'
+      });
+      return;
+    }
+    const documentData = {
+      formaEntrega: deliveryMethod,
+      customerName: selectedCustomer ? selectedCustomer.name : null,
+      Address:
+        deliveryMethod === "despacho"
+          ? {
+              address: address.street,
+              city: address.city,
+              region: address.region,
+              zipCode: address.zipCode,
+              fecha: address.deliveryDate,
+            }
+          : null,
+      Documento: {
+        Encabezado: {
+          IdDoc: {
+            TipoDTE: saleType === "factura" ? 33 : 39,
+            FchEmis: new Date().toISOString().split("T")[0],
+            FmaPago: paymentMethod,
+          },
+          Emisor: EMISOR,
+          Receptor:
+            saleType === "factura"
+              ? {
+                  RUTRecep: invoiceData.rut,
+                  RznSocRecep: invoiceData.razonSocial,
+                  GiroRecep: invoiceData.giro,
+                  CorreoRecep: invoiceData.email,
+                  DirRecep: invoiceData.direccion,
+                  CmnaRecep: invoiceData.comuna,
+                  CiudadRecep: invoiceData.ciudad,
+                }
+              : {
+                  RUTRecep: "66666666-6",
+                  RznSocRecep: selectedCustomer
+                    ? selectedCustomer.name
+                    : "",
+                  GiroRecep: "Particular",
+                  CorreoRecep: "",
+                  DirRecep: "",
+                  CmnaRecep: "",
+                  CiudadRecep: "",
+                },
+          Totales: {
+            MntNeto: calculations.total.toString(),
+            TasaIVA: "19",
+            IVA: calculations.iva.toString(),
+            MntTotal: calculations.total.toString(),
+          },
+        },
+        Detalle: cartItems.map((item, index) => ({
+          NroLinDet: (index + 1).toString(),
+          NmbItem: item.product.name,
+          QtyItem: item.quantity.toString(),
+          UnmdItem: "un",
+          PrcItem: item.product.price?.toString() || "0",
+          MontoItem: (
+            (item.product.price || 0) * item.quantity
+          ).toString(),
+        })),
+      },
+    };
+    onSubmit(documentData);
+  };
+
   return (
     <div className="h-screen flex flex-col w-full">
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto p-6 space-y-8">
+      <div className="flex-1 overflow-y-auto" ref={scrollRef}>
+        <div className="max-w-4xl mx-auto p-6 space-y-6">
           {/* Encabezado */}
           <div className="border-b pb-4">
             <h1 className="text-2xl font-semibold">Finalizar Compra</h1>
@@ -130,19 +211,7 @@ const PagarScreen = ({
           {/* Método de entrega */}
           <div className="space-y-4">
             <h2 className="text-lg font-medium">Método de entrega</h2>
-            <div className="grid grid-cols-3 gap-4">
-              <button
-                onClick={() => setDeliveryMethod("inmediata")}
-                className={`p-4 border rounded-lg flex flex-col items-center gap-2 transition-colors
-                  ${
-                    deliveryMethod === "inmediata"
-                      ? "border-black bg-gray-50"
-                      : "border-gray-200"
-                  }`}
-              >
-                <Package className="w-6 h-6" />
-                <span>Entrega inmediata</span>
-              </button>
+            <div className="grid grid-cols-2 gap-4">
               <button
                 onClick={() => setDeliveryMethod("retiro")}
                 className={`p-4 border rounded-lg flex flex-col items-center gap-2 transition-colors
@@ -393,71 +462,7 @@ const PagarScreen = ({
       {/* Botón de confirmación */}
       <div className="p-6 border-t bg-white">
         <button
-          onClick={() => {
-            const documentData = {
-              formaEntrega: deliveryMethod,
-              customerName: selectedCustomer ? selectedCustomer.name : null,
-              Address:
-                deliveryMethod === "despacho"
-                  ? {
-                      address: address.street,
-                      city: address.city,
-                      region: address.region,
-                      zipCode: address.zipCode,
-                      fecha: address.deliveryDate,
-                    }
-                  : null,
-              Documento: {
-                Encabezado: {
-                  IdDoc: {
-                    TipoDTE: saleType === "factura" ? 33 : 39,
-                    FchEmis: new Date().toISOString().split("T")[0],
-                    FmaPago: paymentMethod,
-                  },
-                  Emisor: EMISOR,
-                  Receptor:
-                    saleType === "factura"
-                      ? {
-                          RUTRecep: invoiceData.rut,
-                          RznSocRecep: invoiceData.razonSocial,
-                          GiroRecep: invoiceData.giro,
-                          CorreoRecep: invoiceData.email,
-                          DirRecep: invoiceData.direccion,
-                          CmnaRecep: invoiceData.comuna,
-                          CiudadRecep: invoiceData.ciudad,
-                        }
-                      : {
-                          RUTRecep: "66666666-6",
-                          RznSocRecep: selectedCustomer
-                            ? selectedCustomer.name
-                            : "",
-                          GiroRecep: "Particular",
-                          CorreoRecep: "",
-                          DirRecep: "",
-                          CmnaRecep: "",
-                          CiudadRecep: "",
-                        },
-                  Totales: {
-                    MntNeto: calculations.total.toString(),
-                    TasaIVA: "19",
-                    IVA: calculations.iva.toString(),
-                    MntTotal: calculations.total.toString(),
-                  },
-                },
-                Detalle: cartItems.map((item, index) => ({
-                  NroLinDet: (index + 1).toString(),
-                  NmbItem: item.product.name,
-                  QtyItem: item.quantity.toString(),
-                  UnmdItem: "un",
-                  PrcItem: item.product.price?.toString() || "0",
-                  MontoItem: (
-                    (item.product.price || 0) * item.quantity
-                  ).toString(),
-                })),
-              },
-            };
-            onSubmit(documentData);
-          }}
+          onClick={handleConfirmSale}
           disabled={!isFormValid}
           className={`w-full py-4 rounded-lg text-lg font-bold transition-colors
             ${
