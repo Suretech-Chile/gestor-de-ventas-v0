@@ -5,10 +5,9 @@ import {
   Truck,
   Store,
   CreditCard,
-  Calendar,
+  Coins,
   Receipt,
   FileText,
-  Building2,
 } from "lucide-react";
 
 // Constantes del Emisor
@@ -26,7 +25,7 @@ const EMISOR = {
 
 // Tipos
 type DeliveryMethod = "inmediata" | "retiro" | "despacho";
-type PaymentMethod = 1 | 2 | 3; // 1: Contado, 2: Crédito, 3: Sin costo
+type PaymentMethod = 1 | 2 | 3; // 1: Efectivo, 2: Débito, 3: Crédito
 
 interface PagarScreenProps {
   cartItems: CartItem[];
@@ -72,8 +71,8 @@ const PagarScreen = ({
       (acc, item) => acc + (item.product.price || 0) * item.quantity,
       0
     );
-    const iva = total * 0.19;
-    const totalSinIva = total - iva;
+    const totalSinIva = Math.round(total / 1.19);
+    const iva = total - totalSinIva;
 
     return {
       total,
@@ -344,8 +343,8 @@ const PagarScreen = ({
                       : "border-gray-200"
                   }`}
               >
-                <CreditCard className="w-6 h-6" />
-                <span>Contado</span>
+                <Coins className="w-6 h-6" />
+                <span>Efectivo</span>
               </button>
               <button
                 onClick={() => setPaymentMethod(2)}
@@ -356,8 +355,8 @@ const PagarScreen = ({
                       : "border-gray-200"
                   }`}
               >
-                <Calendar className="w-6 h-6" />
-                <span>Crédito</span>
+                <CreditCard className="w-6 h-6" />
+                <span>Débito</span>
               </button>
               <button
                 onClick={() => setPaymentMethod(3)}
@@ -368,8 +367,8 @@ const PagarScreen = ({
                       : "border-gray-200"
                   }`}
               >
-                <Building2 className="w-6 h-6" />
-                <span>Sin costo</span>
+                <CreditCard className="w-6 h-6" />
+                <span>Crédito</span>
               </button>
             </div>
           </div>
