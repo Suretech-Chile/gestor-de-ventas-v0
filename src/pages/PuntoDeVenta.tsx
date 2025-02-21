@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { CartItem, Customer, Product } from "../typing/typesUtils"; // Tipos
 import LeftPanel from "./punto-de-venta-components/left-panel/LeftPanel";
 import { LeftPanelViewTypes } from "../typing/typesUtils";

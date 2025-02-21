@@ -1,5 +1,5 @@
 import { CartItem, Customer } from "../../../typing/typesUtils";
-import { X, Save, CreditCard, Trash2 } from "lucide-react";
+import { X, Save, CreditCard, Trash2, Minus, Plus } from "lucide-react";
 
 // Panel derecho
 const RightPanel = ({
@@ -34,6 +34,7 @@ const RightPanel = ({
         setCartItems={setCartItems}
         saleType={saleType}
         setSaleType={setSaleType}
+        showPagarScreen={showPagarScreen}
       />
       <RightPanelFooter
         cart={cartItems}
@@ -69,11 +70,13 @@ const RightPanelContent = ({
   setCartItems,
   saleType,
   setSaleType,
+  showPagarScreen,
 }: {
   cartItems: CartItem[];
   setCartItems: (items: CartItem[]) => void;
   saleType: "boleta" | "factura";
   setSaleType: (type: "boleta" | "factura") => void;
+  showPagarScreen: boolean;
 }) => {
   const total = cartItems.reduce(
     (sum, item) => sum + item.product.price! * item.quantity,
@@ -118,7 +121,7 @@ const RightPanelContent = ({
       </div>
       <div className="mt-4 flex justify-between items-center">
         <div className="relative">
-          <select
+          { !showPagarScreen && <select
             value={saleType}
             onChange={(e) =>
               setSaleType(e.target.value as "boleta" | "factura")
@@ -127,7 +130,7 @@ const RightPanelContent = ({
           >
             <option value="boleta">Boleta</option>
             <option value="factura">Factura</option>
-          </select>
+          </select>}
           <div className="absolute right-3 top-3 pointer-events-none">
             <svg
               className="h-4 w-4 text-gray-400"
@@ -163,12 +166,13 @@ const CartItemRow = ({
   setCartItems: (items: CartItem[]) => void;
 }) => {
   const handleQuantityChange = (quantity: number) => {
-    const newCartItems = cartItems.map((cartItem) =>
+    // Verificamos el stock disponible y los comparamos con la cantidad deseada para establecer un limite
+    const maxQuantity = cartItems.find((cartItem) => cartItem.product.id === item.product.id)?.product.stock || 0;
+    setCartItems(cartItems.map((cartItem) =>
       cartItem.product.id === item.product.id
-        ? { ...cartItem, quantity }
+        ? { ...cartItem, quantity: Math.max(1, Math.min(quantity, maxQuantity)) }
         : cartItem
-    );
-    setCartItems(newCartItems);
+    ));
   };
 
   const handleRemoveItem = () => {
@@ -180,14 +184,29 @@ const CartItemRow = ({
 
   return (
     <tr className="border-b border-gray-200">
-      <td className="py-2">
+      <td className="py-2 flex items-center">
+        {/* Botón de Restar */}
+        <button
+          onClick={() => item.quantity > 1 && handleQuantityChange(item.quantity - 1)}
+          className="w-8 h-10 flex items-center justify-center bg-white text-black border-r-0 border border-gray-300  rounded-l-full focus:outline-none hover:bg-red-500 transition"
+        >
+          <Minus className="w-4 h-4" />
+        </button>
+        {/* Input de Cantidad */}
         <input
           type="number"
           min="1"
           value={item.quantity}
           onChange={(e) => handleQuantityChange(parseInt(e.target.value))}
-          className="w-20 px-2 py-1 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+          className="w-10 h-10 text-center bg-white text-black border-t border-b border-gray-300 focus:outline-none focus:ring-0 appearance-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         />
+        {/* Botón de Sumar */}
+        <button
+          onClick={() => handleQuantityChange(item.quantity + 1)}
+          className="w-8 h-10 flex items-center justify-center bg-white text-black border-l-0 border border-gray-300 rounded-r-full focus:outline-none hover:bg-emerald-500 transition"
+        >
+          <Plus className="w-4 h-4" />
+        </button>
       </td>
       <td className="text-gray-900">{item.product.name}</td>
       <td className="text-right text-gray-900">
@@ -215,7 +234,6 @@ const RightPanelFooter = ({
   setCartItems,
   showPagarScreen,
   setShowPagarScreen,
-  showNotifications,
   openCartClearModal,
 }: {
   saleType: "boleta" | "factura";

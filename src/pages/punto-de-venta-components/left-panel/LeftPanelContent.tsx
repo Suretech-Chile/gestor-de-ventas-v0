@@ -121,7 +121,7 @@ const LeftPanelContent = ({
                 </td>
                 <td className="py-3 flex justify-end gap-0.5">
                   <button
-                    className="hover:bg-emerald-300 hover:cursor-pointer p-1 rounded-full"
+                    className="hover:bg-emerald-500 hover:cursor-pointer p-1 rounded-full"
                     onClick={() => onAdd(product)}
                   >
                     <CirclePlus className="text-gray-600 hover:text-gray-900" />
