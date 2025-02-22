@@ -108,7 +108,7 @@ const LeftPanelContent = ({
                 <td className="py-3 text-right text-gray-900">
                   <span className={`${!product.price ? "text-red-600" : ""}`}>
                     {product.price || product.price === 0
-                      ? "$" + product.price.toFixed(2)
+                      ? "$" + product.price.toFixed(0)
                       : "Sin info"}
                   </span>
                 </td>

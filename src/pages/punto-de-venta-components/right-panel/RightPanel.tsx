@@ -152,7 +152,7 @@ const RightPanelContent = ({
           </div>
         </div>
         <div className="text-xl font-semibold text-gray-900">
-          Total: ${total.toFixed(2)}
+          Total: ${total.toFixed(0)}
         </div>
       </div>
     </div>
@@ -220,11 +220,11 @@ const CartItemRow = ({
       </td>
       <td className="text-gray-900">{item.product.name}</td>
       <td className="text-right text-gray-900">
-        ${item.product.price!.toFixed(2)}
+        ${item.product.price!.toFixed(0)}
       </td>
       {/* <td className="text-right text-gray-900">{item.product.stock}</td> DECIDIMOS NO MOSTRAR STOCK ACÁ */}
       <td className="text-right text-gray-900">
-        ${(item.product.price! * item.quantity).toFixed(2)}
+        ${(item.product.price! * item.quantity).toFixed(0)}
       </td>
       <td className="text-right">
         <button
