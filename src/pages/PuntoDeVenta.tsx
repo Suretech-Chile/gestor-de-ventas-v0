@@ -63,10 +63,8 @@ const PuntoDeVenta = () => {
           ...updatedItems[existingItemIndex],
           quantity: updatedItems[existingItemIndex].quantity + 1,
         };
-        showNotification(`Se agregó ${product.name} al carrito`, "success");
         return updatedItems;
       } else {
-        showNotification(`Se agregó ${product.name} al carrito`, "success");
         return [...prevItems, { product, quantity: 1 }];
       }
     });
@@ -84,7 +82,6 @@ const PuntoDeVenta = () => {
 
         if (newQuantity <= 0) {
           // Eliminar el producto del carrito si la cantidad llega a 0
-          showNotification(`Se eliminó ${product.name} del carrito`, "success");
           return updatedItems.filter((_, index) => index !== existingItemIndex);
         }
 
@@ -92,7 +89,6 @@ const PuntoDeVenta = () => {
           ...updatedItems[existingItemIndex],
           quantity: newQuantity,
         };
-        showNotification(`Se redujo la cantidad de ${product.name}`, "success");
         return updatedItems;
       }
       return prevItems;

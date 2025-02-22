@@ -35,6 +35,7 @@ const RightPanel = ({
         saleType={saleType}
         setSaleType={setSaleType}
         showPagarScreen={showPagarScreen}
+        showNotifications={showNotifications}
       />
       <RightPanelFooter
         cart={cartItems}
@@ -71,12 +72,14 @@ const RightPanelContent = ({
   saleType,
   setSaleType,
   showPagarScreen,
+  showNotifications,
 }: {
   cartItems: CartItem[];
   setCartItems: (items: CartItem[]) => void;
   saleType: "boleta" | "factura";
   setSaleType: (type: "boleta" | "factura") => void;
   showPagarScreen: boolean;
+  showNotifications: (message: string, type: "success" | "error") => void;
 }) => {
   const total = cartItems.reduce(
     (sum, item) => sum + item.product.price! * item.quantity,
@@ -114,6 +117,7 @@ const RightPanelContent = ({
                 item={item}
                 cartItems={cartItems}
                 setCartItems={setCartItems}
+                showNotifications={showNotifications}
               />
             ))}
           </tbody>
@@ -160,14 +164,20 @@ const CartItemRow = ({
   item,
   cartItems,
   setCartItems,
+  showNotifications,
 }: {
   item: CartItem;
   cartItems: CartItem[];
   setCartItems: (items: CartItem[]) => void;
+  showNotifications: (message: string, type: "success" | "error") => void;
 }) => {
   const handleQuantityChange = (quantity: number) => {
     // Verificamos el stock disponible y los comparamos con la cantidad deseada para establecer un limite
     const maxQuantity = cartItems.find((cartItem) => cartItem.product.id === item.product.id)?.product.stock || 0;
+    if (quantity > maxQuantity) {
+      showNotifications(`No hay más stock disponible de ${item.product.name}`, "error");
+      return;
+    }
     setCartItems(cartItems.map((cartItem) =>
       cartItem.product.id === item.product.id
         ? { ...cartItem, quantity: Math.max(1, Math.min(quantity, maxQuantity)) }
